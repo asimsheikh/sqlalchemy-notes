@@ -129,3 +129,53 @@ class Address(Base):
 
 print(User.__table__)
 
+## emitting CREATE TABLE statements
+
+# mapper_registry.metadata.create_all(engine)
+
+Base.metadata.create_all(engine)
+
+## inserting data into the database
+
+from sqlalchemy import insert
+stmt = insert(user_table).values(name='spongebob', fullname='Spongebob Squarepants')
+
+print(stmt)
+print(stmt.compile())
+
+## executing the insert statement
+
+with engine.connect() as conn:
+    result = conn.execute(stmt)
+    conn.commit()
+
+print(result.inserted_primary_key)
+
+## most common way to issue multiple inserts
+
+with engine.connect() as conn:
+    result = conn.execute(
+        insert(user_table),
+        [dict(name='sandy', fullname='Sandy Cheeks'),
+         dict(name='patrick', fullname='Patrick Star')
+         ]
+    )
+    conn.commit()
+
+## basics of selection
+
+from sqlalchemy import select 
+stmt = select(user_table).where(user_table.c.name == 'spongebob')
+print(stmt)
+
+with engine.connect() as conn:
+    for row in conn.execute(stmt):
+        print(row)
+
+## select statement with ORM
+
+stmt = select(User).where(User.name == 'spongebob')
+with Session(engine) as session:
+    for row in session.execute(stmt):
+        print(row)
+
